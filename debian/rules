@@ -1,0 +1,20 @@
+#!/usr/bin/make -f
+# Sample debian/rules that uses debhelper.
+# This file is public domain software, originally written by Joey Hess.
+#
+# This version is for a multibinary package. It also allows you to build any
+# of the binary packages independantly, via binary-<package> targets.
+
+# Uncomment this to turn on verbose mode. 
+export DH_VERBOSE=1
+
+override_dh_install:
+	$(MAKE) install DESTDIR=$(CURDIR)/debian/alternc-metrics
+
+%:
+	dh $@
+
+override_dh_install:
+        install -o root -g root -m0755 src/lib/* debian/alternc-metrics/usr/lib/alternc
+        install -o root -g root -m0644 src/class/* debian/alternc-metrics/usr/share/alternc/panel/class
+

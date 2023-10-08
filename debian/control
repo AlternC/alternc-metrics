@@ -1,0 +1,24 @@
+Source: alternc-metrics
+Section: admin
+Priority: optional
+Maintainer: Benjamin Sonntag <benjamin@sonntag.fr>
+Build-Depends: debhelper (>= 10)
+Standards-Version: 4.6.2
+
+Package: alternc-metrics
+Architecture: all
+Pre-depends: alternc (>= 3.3.0) 
+Depends: php5-cli | php-cli
+         , ${misc:Depends}
+Recommends: alternc-metrics-basic
+Description: Hosting management suite, Metrics collector
+ AlternC is a mutualized hosting software manager for Linux.
+ It allows you to manage your websites, domains, ftp, emails, aliases,
+ web statistics, mailing-lists etc.
+ .
+ This module for AlternC is able to extract and store various metrics
+ that can be published or exposed to users via other plugis such as
+ alternc-metrics-basic or alternc-metrics-prometheus
+ .
+ More information at https://www.alternc.com/
+Homepage: https://www.alternc.com/

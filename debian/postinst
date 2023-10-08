@@ -1,0 +1,9 @@
+#!/bin/bash -e
+
+case "$1" in
+  configure)
+    echo "Installing alternc-metrics sql DB"
+    /usr/lib/alternc/install_metrics.php
+    ;;
+esac
+
