@@ -1,0 +1,6 @@
+debian/.debhelper/
+debian/alternc-metrics.postrm.debhelper
+debian/alternc-metrics.substvars
+debian/alternc-metrics/
+debian/debhelper-build-stamp
+debian/files

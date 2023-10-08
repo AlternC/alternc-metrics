@@ -2,13 +2,13 @@ Source: alternc-metrics
 Section: admin
 Priority: optional
 Maintainer: Benjamin Sonntag <benjamin@sonntag.fr>
-Build-Depends: debhelper (>= 10)
+Build-Depends: debhelper-compat (= 12)
 Standards-Version: 4.6.2
 
 Package: alternc-metrics
 Architecture: all
 Pre-depends: alternc (>= 3.3.0) 
-Depends: php5-cli | php-cli
+Depends: php-cli
          , ${misc:Depends}
 Recommends: alternc-metrics-basic
 Description: Hosting management suite, Metrics collector

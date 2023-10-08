@@ -15,6 +15,6 @@ override_dh_install:
 	dh $@
 
 override_dh_install:
-        install -o root -g root -m0755 src/lib/* debian/alternc-metrics/usr/lib/alternc
-        install -o root -g root -m0644 src/class/* debian/alternc-metrics/usr/share/alternc/panel/class
+	install -o root -g root -m0755 src/lib/* debian/alternc-metrics/usr/lib/alternc
+	install -o root -g root -m0644 src/class/* debian/alternc-metrics/usr/share/alternc/panel/class
 

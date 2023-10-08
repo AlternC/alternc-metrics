@@ -1,0 +1,10 @@
+[Unit]
+Description=Collection of metrics launched by a daily timer
+
+[Service]
+Type=oneshot
+ExecStart=/usr/lib/alternc/cron_metrics.php
+
+[Install]
+WantedBy=default.target
+

@@ -5,3 +5,5 @@ case "$1" in
     mysql --defaults-file=/etc/alternc/my.cnf -e "DROP TABLE metrics; DROP TABLE metrics_sympa;"
     ;;
 esac
+
+#DEBHELPER#
