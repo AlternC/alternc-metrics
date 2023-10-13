@@ -31,6 +31,7 @@ class metrics_mail extends metrics_base {
 
     var $manualmetrics=["mail_mailbox_count","mail_mailbox_size_bytes","mail_alias_count"];
 
+
     /**
      * collect all metrics for the mail service.
      * quota (disk space) are already available via dovecot_quota.
@@ -200,6 +201,60 @@ class metrics_mail extends metrics_base {
         }
         return null;
     }
+
+
+    /**
+     * returns the number of imap mailboxes per domain
+     * may be filtered by accounts or domains (no check is done on their values, sql injection may happen !)
+     */
+    function get_mail_mailbox_count($filter=[]) {
+        global $db;
+        $sql="SELECT COUNT(*) AS ct, a.domain_id, d.compte FROM mailbox m, address a, domaines d ";
+        $where="";
+        if (isset($filter["accounts"])) {
+            $where.=" AND d.compte IN (".implode(",",$filter["accounts"]).") ";
+        }
+        if (isset($filter["domains"])) {
+            $where.="  AND a.domain_id IN (".implode(",",$filter["domains"]).") ";
+        }
+        $sql.=" WHERE m.mail_action='OK' AND a.id=m.address_id AND d.id=a.domain_id $where GROUP BY a.domain_id ";
+        echo $sql."\n";
+        $db->query($sql);
+        $metrics=[];
+        // a metric = [ name, value and, if applicable: account_id, domain_id, object_id ]
+        while ($db->next_record()) {
+            $metrics[]=[ "name" => "mail_mailbox_count", "value" => $db->Record["ct"], "account_id" => $db->Record["compte"], "domain_id" => $db->Record["domain_id"] ];
+        }
+        return $metrics;
+    }
+
+    
+    function get_mail_alias_count($filter=[]) {
+        global $db;
+        $sql="SELECT COUNT(*) AS ct, a.domain_id, d.compte FROM recipient m, address a, domaines d ";
+        $where="";
+        if (isset($filter["accounts"])) {
+            $where.=" AND d.compte IN (".implode(",",$filter["accounts"]).") ";
+        }
+        if (isset($filter["domains"])) {
+            $where.="  AND a.domain_id IN (".implode(",",$filter["domains"]).") ";
+        }
+        $sql.=" WHERE a.mail_action='OK' AND a.id=m.address_id AND d.id=a.domain_id $where GROUP BY a.domain_id ";
+        echo $sql."\n";
+        $db->query($sql);
+        $metrics=[];
+        // a metric = [ name, value and, if applicable: account_id, domain_id, object_id ]
+        while ($db->next_record()) {
+            $metrics[]=[ "name" => "mail_mailbox_count", "value" => $db->Record["ct"], "account_id" => $db->Record["compte"], "domain_id" => $db->Record["domain_id"] ];
+        }
+        return $metrics;
+    }
+
+    function get_mail_mailbox_size_bytes($filter=[]) {
+        global $db;
+    }
+
+    
 
 
 } // class metrics_mail
