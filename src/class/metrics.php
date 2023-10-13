@@ -8,6 +8,8 @@ class metrics {
     var $classes=[];
     var $metricInstance=[]; // list of sub classes (for each class basically :) ) 
 
+
+    /* -------------------------------------------------------------------------------- */
     function __construct() {
         if (is_file("/etc/alternc/metrics.json")) {
             $this->conf=@json_decode(file_get_contents("/etc/alternc/metrics.json"));
@@ -35,6 +37,7 @@ class metrics {
     }
 
 
+    /* -------------------------------------------------------------------------------- */
     /** 
      * function called at install time to install the metric tables if needed.
      * should be idem-potent
@@ -184,7 +187,7 @@ class metrics {
 
 
 /* -------------------------------------------------------------------------------- */
-/** base of all metrics classes, provides metricInstance with utilities 
+/** base of all metrics classes, contains utility functions for child classes
  */ 
 class metrics_base {
 
@@ -198,10 +201,14 @@ class metrics_base {
     public $types=[];
     public $manualmetrics=[];
 
+
+    /* -------------------------------------------------------------------------------- */
     function __construct($conf) {
         $this->conf=$conf;
     }
 
+
+    /* -------------------------------------------------------------------------------- */
     /** given an email address
      * return the account id, domain id and the address id of it, if locally hosted.
      * or null if the email is not locally hosted.
@@ -224,6 +231,7 @@ class metrics_base {
     }
 
 
+    /* -------------------------------------------------------------------------------- */
     /** given an account id
      * return the account login (name)
      * or null if the account has not been found.
@@ -248,6 +256,7 @@ class metrics_base {
     }
 
 
+    /* -------------------------------------------------------------------------------- */
     /** given a domain id
      * return the domain name
      * or null if the domain has not been found.
@@ -272,6 +281,7 @@ class metrics_base {
     }
 
 
+    /* -------------------------------------------------------------------------------- */
     /** given a FQDN
      * return the account id, domain id and the sub_domain id of it, if locally hosted.
      * or null if this FQDN is not locally hosted.
@@ -311,6 +321,8 @@ class metrics_base {
         return $fqdncache[$fqdn]=[$domid[0],$domid[1],$db->f("id")];
     }
 
+
+    /* -------------------------------------------------------------------------------- */
     /** given a domain name
      * return the account id and domain id, if locally hosted.
      * or null if the domain is not locally hosted.
@@ -328,6 +340,7 @@ class metrics_base {
     }
 
 
+    /* -------------------------------------------------------------------------------- */
     /** given a domain name
      * return the account id and domain id, if locally hosted.
      * or null if the domain is not locally hosted.
@@ -345,6 +358,7 @@ class metrics_base {
     }
 
 
+    /* -------------------------------------------------------------------------------- */
     /** list the domaines_type that are hosting ones (having templates in /etc/alternc/templates/apache2/*.conf)
      */
     protected function getHostingTypes() {
@@ -358,6 +372,8 @@ class metrics_base {
         return $ht;
     }
     
+
+    /* -------------------------------------------------------------------------------- */
     /**
      * return one or all the metrics for this class.
      * you can override this function if needed.
@@ -421,7 +437,8 @@ class metrics_base {
     } // get 
 
 
-    // SHOULD be overriden by child:
+    /* -------------------------------------------------------------------------------- */
+    // this function SHOULD be overriden by child to return the object NAME of a metric (given by name+object_id):
     public function getObjectName($metric,$cacheallobjects=false) {
         return null;
     }
