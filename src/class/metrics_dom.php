@@ -186,7 +186,7 @@ class metrics_dom extends metrics_base {
 
         if ($metric["name"]=="dom_domain_type_count") {
             if (!count($dtcache)) {
-                $db->query("SELECT id,name FROM alternc_metrics.metrics_domaines_type;");
+                $db->query("SELECT id,name FROM metrics_domaines_type;");
                 while ($db->next_record()) {
                     $dtcache[$db->Record["id"]]=$db->Record["name"];
                 }
@@ -271,8 +271,8 @@ class metrics_dom extends metrics_base {
      */
     function get_dom_domain_type_count($filter=[]) {
         global $db;
-        $db->query("INSERT IGNORE INTO alternc_metrics.metrics_domaines_type (name) SELECT name FROM domaines_type;");
-        $sql="SELECT COUNT(*) AS ct, d.id, s.compte, dt.id AS typeid FROM sub_domaines s, domaines d, alternc_metrics.metrics_domaines_type dt WHERE s.web_action='OK' AND d.domaine=s.domaine AND dt.name=s.type ";
+        $db->query("INSERT IGNORE INTO metrics_domaines_type (name) SELECT name FROM domaines_type;");
+        $sql="SELECT COUNT(*) AS ct, d.id, s.compte, dt.id AS typeid FROM sub_domaines s, domaines d, metrics_domaines_type dt WHERE s.web_action='OK' AND d.domaine=s.domaine AND dt.name=s.type ";
         if (isset($filter["accounts"])) {
             $sql.=" AND s.compte IN (".implode(",",$filter["accounts"]).") ";
         }
