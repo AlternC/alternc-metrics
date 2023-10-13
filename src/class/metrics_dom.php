@@ -179,10 +179,10 @@ class metrics_dom extends metrics_base {
         global $db;
         static $ocache=[];
         static $dtcache=[];
-        
+
         if ($metric["name"]=="dom_domain_count") return null;
         if ($metric["name"]=="dom_web_size_bytes") return $this->getAccountName($metric["object_id"]);
-        if ($metric["name"]=="dom_subdomain_count") return $this->getDomainName($metric["object_id"]);
+        if ($metric["name"]=="dom_subdomain_count") return null;
 
         if ($metric["name"]=="dom_domain_type_count") {
             if (!count($dtcache)) {
@@ -226,7 +226,8 @@ class metrics_dom extends metrics_base {
         if (isset($filter["domains"])) {
             $sql.=" AND d.id IN (".implode(",",$filter["domains"]).") ";
         }
-        $db->query($sql.$where." GROUP BY s.compte ");
+        $sql.=$where." GROUP BY s.domaine ";
+        $db->query($sql);
         $metrics=[];
         // a metric = [ name, value and, if applicable: account_id, domain_id, object_id ]
         while ($db->next_record()) {
@@ -283,7 +284,7 @@ class metrics_dom extends metrics_base {
         $metrics=[];
         // a metric = [ name, value and, if applicable: account_id, domain_id, object_id ]
         while ($db->next_record()) {
-            $metrics[]=[ "name" => "dom_subdomain_count", "value" => $db->Record["ct"], "account_id" => $db->Record["compte"], "domain_id" => $db->Record["id"], "object_id" => $db->Record["typeid"] ];
+            $metrics[]=[ "name" => "dom_domain_type_count", "value" => $db->Record["ct"], "account_id" => null, "domain_id" => null, "object_id" => $db->Record["typeid"] ];
         }
         return $metrics;
     }
