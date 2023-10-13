@@ -257,30 +257,25 @@ class metrics_sympa extends metrics_base {
             if ($aff=$db->affected_rows() && $this->conf["debug"]) echo date("Y-m-d H:i:s")." sympa: deleted $aff lists from alternc due to deleted lists\n"; 
         }
     }
-
-
+    
+    
     public function getObjectName($metric,$cacheallobjects=false) {
         global $db;
         static $ocache=[];
-
-        if ($metric["name"]=="sympa_robot_count") return null; // no object in there (per server)
-
-        if ($cacheallobjects) {
-            $db->query("SELECT id,name FROM metrics_sympa;");
-            while($db->next_record()) {
-                $ocache[$db->Record["id"]]=$db->Record["name"];
-            }
-        }
-
+        
         // the following metrics are per-robot, not per list
-        $perdomain=["sympa_www_hits_count","sympa_list_count"];
-        if (in_array($metric["name"],$perdomain)) {
-            $db->query("SELECT id,mail FROM sympa WHERE id=".intval($metric["object_id"]).";");
-            if ($db->next_record()) {
-                return $db->Record["mail"]; // no cache here, it's a FQDN
-            }
+        $noobject=["sympa_robot_count","sympa_www_hits_count","sympa_list_count"];
+        if (in_array($metric["name"],$noobject)) {
+            return null; 
         } else {
-            // all the others are per-list.
+            // pre-fill the cache if requested
+            if ($cacheallobjects) {
+                $db->query("SELECT id,name FROM metrics_sympa;");
+                while($db->next_record()) {
+                    $ocache[$db->Record["id"]]=$db->Record["name"];
+                }
+            }
+            // all the others metrics are per-list.
             if (isset($ocache[$metric["object_id"]])) return $ocache[$metric["object_id"]];
             $db->query("SELECT id,name FROM metrics_sympa WHERE id=".intval($metric["object_id"]).";");
             if ($db->next_record()) {
@@ -288,6 +283,57 @@ class metrics_sympa extends metrics_base {
             }
         }
         return null;
+    }
+
+    
+    /* -------------------------------------------------------------------------------- */
+    /**
+     * returns the number of sympa list per alternc account
+     * may be filtered by accounts or domains (no check is done on their values, sql injection may happen !)
+     */
+    function get_sympa_list_count($filter=[]) {
+        global $db;
+
+        $this->sympa_sync_lists(); // synchronise the list of sympa lists
+        
+        $sql="SELECT COUNT(*) AS ct, accout_id, domain_id  FROM metrics_sympa WHERE 1 ";
+        if (isset($filter["accounts"])) {
+            $sql.=" AND account_id IN (".implode(",",$filter["accounts"]).") ";
+        }
+        if (isset($filter["domains"])) {
+            $sql.=" AND domain_id IN (".implode(",",$filter["domains"]).") ";
+        }
+        $sql.=$where." GROUP BY account_id ";
+        $db->query($sql);
+        $metrics=[];
+        // a metric = [ name, value and, if applicable: account_id, domain_id, object_id ]
+        while ($db->next_record()) {
+            $metrics[]=[ "name" => "sympa_list_count", "value" => $db->Record["ct"], "account_id" => $db->Record["account_id"], "domain_id" => $db->Record["domain_id"], "object_id" => null ];
+        }
+        return $metrics;
+    }
+    
+    /* -------------------------------------------------------------------------------- */
+    /**
+     * returns the number of sympa robots
+     * may be filtered by accounts  (no check is done on their values, sql injection may happen !)
+     */
+    function get_sympa_robot_count($filter=[]) {
+        global $db;
+        $sql="SELECT COUNT(*) AS ct, uid, mail_domain_id FROM sympa WHERE 1 ";
+        if (isset($filter["accounts"])) {
+            $sql.=" AND uid IN (".implode(",",$filter["accounts"]).") ";
+        }
+        if (isset($filter["domains"])) {
+            $sql.=" AND mail_domain_id IN (".implode(",",$filter["domains"]).") ";
+        }
+        $db->query($sql.$where." GROUP BY uid ");
+        $metrics=[];
+        // a metric = [ name, value and, if applicable: account_id, domain_id, object_id ]
+        while ($db->next_record()) {
+            $metrics[]=[ "name" => "sympa_robot_count", "value" => $db->Record["ct"], "account_id" => $db->Record["uid"], "domain_id" => null, "object_id" => null ];
+        }
+        return $metrics;
     }
 
 

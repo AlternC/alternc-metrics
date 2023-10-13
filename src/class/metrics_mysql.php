@@ -53,9 +53,7 @@ class metrics_mysql extends metrics_base {
     public function getObjectName($metric,$cacheallobjects=false) {
         global $db;
         
-        if ($metric["name"]=="mysql_db_count") {
-            return $this->getAccountName($metric["object_id"]);
-        }
+        if ($metric["name"]=="mysql_db_count") return null;
 
 //        "mysql_db_size_bytes"
         static $ocache=[];
@@ -75,6 +73,33 @@ class metrics_mysql extends metrics_base {
         return null;
     }
 
+    
+    /* -------------------------------------------------------------------------------- */
+    /**
+     * returns the number of databases per account.
+     * may be filtered by accounts or domains (no check is done on their values, sql injection may happen !)
+     */
+    function get_mysql_db_count($filter=[]) {
+        global $db;
+        $sql="SELECT COUNT(*) AS ct, uid FROM db WHERE 1 ";
+        if (isset($filter["accounts"])) {
+            $sql.=" AND uid IN (".implode(",",$filter["accounts"]).") ";
+        }
+        // this filter has no meaning, it's ignored:
+        /*
+          if (isset($filter["domains"])) {
+            $sql.=" AND d.id IN (".implode(",",$filter["domains"]).") ";
+        }
+        */
+        $sql.=$where." GROUP BY uid ";
+        $db->query($sql);
+        $metrics=[];
+        // a metric = [ name, value and, if applicable: account_id, domain_id, object_id ]
+        while ($db->next_record()) {
+            $metrics[]=[ "name" => "mysql_db_count", "value" => $db->Record["ct"], "account_id" => $db->Record["uid"], "domain_id" => null, "object_id" => null ];
+        }
+        return $metrics;
+    }
 
 
 }
