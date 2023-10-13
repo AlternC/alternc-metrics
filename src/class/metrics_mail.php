@@ -224,7 +224,7 @@ class metrics_mail extends metrics_base {
         $metrics=[];
         // a metric = [ name, value and, if applicable: account_id, domain_id, object_id ]
         while ($db->next_record()) {
-            $metrics[]=[ "name" => "mail_mailbox_count", "value" => $db->Record["ct"], "account_id" => $db->Record["compte"], "domain_id" => $db->Record["domain_id"] ];
+            $metrics[]=[ "name" => "mail_mailbox_count", "value" => $db->Record["ct"], "account_id" => $db->Record["compte"], "domain_id" => $db->Record["domain_id"], "object_id" => null ];
         }
         return $metrics;
     }
@@ -250,7 +250,7 @@ class metrics_mail extends metrics_base {
         $metrics=[];
         // a metric = [ name, value and, if applicable: account_id, domain_id, object_id ]
         while ($db->next_record()) {
-            $metrics[]=[ "name" => "mail_mailbox_count", "value" => $db->Record["ct"], "account_id" => $db->Record["compte"], "domain_id" => $db->Record["domain_id"] ];
+            $metrics[]=[ "name" => "mail_mailbox_count", "value" => $db->Record["ct"], "account_id" => $db->Record["compte"], "domain_id" => $db->Record["domain_id"], "object_id" => null ];
         }
         return $metrics;
     }
@@ -263,7 +263,7 @@ class metrics_mail extends metrics_base {
      */
     function get_mail_mailbox_size_bytes($filter=[]) {
         global $db;
-        $sql="SELECT quota_dovecot, a.domain_id, d.compte FROM dovecot_quota q, address a, domaines d WHERE CONCAT(a.address,'@',d.domaine)=q.user AND a.mail_action='OK'  AND d.id=a.domain_id ";
+        $sql="SELECT quota_dovecot, a.id, a.domain_id, d.compte FROM dovecot_quota q, address a, domaines d WHERE CONCAT(a.address,'@',d.domaine)=q.user AND a.mail_action='OK'  AND d.id=a.domain_id ";
         if (isset($filter["accounts"])) {
             $sql.=" AND d.compte IN (".implode(",",$filter["accounts"]).") ";
         }
@@ -274,7 +274,7 @@ class metrics_mail extends metrics_base {
         $metrics=[];
         // a metric = [ name, value and, if applicable: account_id, domain_id, object_id ]
         while ($db->next_record()) {
-            $metrics[]=[ "name" => "mail_mailbox_size_bytes", "value" => $db->Record["quota_dovecot"], "account_id" => $db->Record["compte"], "domain_id" => $db->Record["domain_id"] ];
+            $metrics[]=[ "name" => "mail_mailbox_size_bytes", "value" => $db->Record["quota_dovecot"], "account_id" => $db->Record["compte"], "domain_id" => $db->Record["domain_id"], "object_id" => $db->Record["id"] ];
         }
         return $metrics;
     }

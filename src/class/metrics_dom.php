@@ -25,6 +25,29 @@ class metrics_dom extends metrics_base {
 
     var $manualmetrics=["dom_subdomain_count", "dom_domain_count", "dom_domain_type_count"];
 
+    
+    /** 
+     * function called at install time to install the metric tables if needed.
+     * should be idem-potent
+     */
+    public function install() {
+        global $db;        
+        $db->query("SHOW TABLES LIKE 'metrics_domaines_type';");
+        if (!$db->next_record()) {
+            $db->query("
+      CREATE TABLE `metrics_domaines_type` (
+      `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+      `name` varchar(255) NOT NULL,
+      PRIMARY KEY (`id`),
+      UNIQUE KEY `name` (`name`)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+      ");
+            echo date("Y-m-d H:i:s")." dom: installed table metrics_domaines_type\n";
+        }
+    }
+
+
+    /* -------------------------------------------------------------------------------- */
     /**
      * collect all metrics for the hosting (domain) service.
      * number of hit per sub_domain/domain/account, computed via apache log parsing (from yesterday) 
@@ -155,13 +178,23 @@ class metrics_dom extends metrics_base {
     public function getObjectName($metric,$cacheallobjects=false) {
         global $db;
         static $ocache=[];
+        static $dtcache=[];
         
         if ($metric["name"]=="dom_domain_count") return null;
-        if ($metric["name"]=="dom_web_size_bytes") return $this->getAccountName($metric["object_id"]);;
-        if ($metric["name"]=="dom_subdomain_count") return $this->getDomainName($metric["object_id"]);;
+        if ($metric["name"]=="dom_web_size_bytes") return $this->getAccountName($metric["object_id"]);
+        if ($metric["name"]=="dom_subdomain_count") return $this->getDomainName($metric["object_id"]);
 
-        if ($metric["name"]=="dom_domain_type_count") return null; // @TODO implement this
+        if ($metric["name"]=="dom_domain_type_count") {
+            if (!count($dtcache)) {
+                $db->query("SELECT id,name FROM alternc_metrics.metrics_domaines_type;");
+                while ($db->next_record()) {
+                    $dtcache[$db->Record["id"]]=$db->Record["name"];
+                }
+            }
+            return $dtcache[$metric["object_id"]];
+        }
 
+        // all other metrics have sub_domains as object_id:
         // we cache the sub_domains:
         if ($cacheallobjects) {
             $db->query("SELECT id,sub FROM sub_domaines;");
@@ -176,6 +209,83 @@ class metrics_dom extends metrics_base {
             return $ocache[$db->Record["id"]]=$db->Record["sub"];
         }
         return null;
+    }
+
+    
+    /* -------------------------------------------------------------------------------- */
+    /**
+     * returns the number of subdomains per domain. 
+     * may be filtered by accounts or domains (no check is done on their values, sql injection may happen !)
+     */
+    function get_dom_subdomain_count($filter=[]) {
+        global $db;
+        $sql="SELECT COUNT(*) AS ct, d.id, s.compte FROM sub_domaines s, domaines d WHERE s.web_action='OK' AND d.domaine=s.domaine ";
+        if (isset($filter["accounts"])) {
+            $sql.=" AND s.compte IN (".implode(",",$filter["accounts"]).") ";
+        }
+        if (isset($filter["domains"])) {
+            $sql.=" AND d.id IN (".implode(",",$filter["domains"]).") ";
+        }
+        $db->query($sql.$where." GROUP BY s.compte ");
+        $metrics=[];
+        // a metric = [ name, value and, if applicable: account_id, domain_id, object_id ]
+        while ($db->next_record()) {
+            $metrics[]=[ "name" => "dom_subdomain_count", "value" => $db->Record["ct"], "account_id" => $db->Record["compte"], "domain_id" => $db->Record["id"], "object_id" => null ];
+        }
+        return $metrics;
+    }
+    
+
+    /* -------------------------------------------------------------------------------- */
+    /**
+     * returns the number of domains per account  dom_domain_type_count
+     * may be filtered by accounts or domains (no check is done on their values, sql injection may happen !)
+     */
+    function get_dom_domain_count($filter=[]) {
+        global $db;
+        $sql="SELECT COUNT(*) AS ct, d.id, d.compte FROM domaines d WHERE 1 ";
+        if (isset($filter["accounts"])) {
+            $sql.=" AND d.compte IN (".implode(",",$filter["accounts"]).") ";
+        }
+        $sql.=" GROUP BY d.compte "; 
+        // this filter doesn't make sense : we ignore it :/ 
+        /*
+          if (isset($filter["domains"])) {
+            $sql.=" AND d.id IN (".implode(",",$filter["domains"]).") ";
+        }
+        */
+        $db->query($sql);
+        $metrics=[];
+        // a metric = [ name, value and, if applicable: account_id, domain_id, object_id ]
+        while ($db->next_record()) {
+            $metrics[]=[ "name" => "dom_domain_count", "value" => $db->Record["ct"], "account_id" => $db->Record["compte"], "domain_id" => null, "object_id" => null ];
+        }
+        return $metrics;
+    }
+
+    
+    /* -------------------------------------------------------------------------------- */
+    /**
+     * returns the number of subdomains per type
+     * may be filtered by accounts or domains (no check is done on their values, sql injection may happen !)
+     */
+    function get_dom_domain_type_count($filter=[]) {
+        global $db;
+        $db->query("INSERT IGNORE INTO alternc_metrics.metrics_domaines_type (name) SELECT name FROM domaines_type;");
+        $sql="SELECT COUNT(*) AS ct, d.id, s.compte, dt.id AS typeid FROM sub_domaines s, domaines d, alternc_metrics.metrics_domaines_type dt WHERE s.web_action='OK' AND d.domaine=s.domaine AND dt.name=s.type ";
+        if (isset($filter["accounts"])) {
+            $sql.=" AND s.compte IN (".implode(",",$filter["accounts"]).") ";
+        }
+        if (isset($filter["domains"])) {
+            $sql.=" AND d.id IN (".implode(",",$filter["domains"]).") ";
+        }
+        $db->query($sql.$where." GROUP BY s.type ");
+        $metrics=[];
+        // a metric = [ name, value and, if applicable: account_id, domain_id, object_id ]
+        while ($db->next_record()) {
+            $metrics[]=[ "name" => "dom_subdomain_count", "value" => $db->Record["ct"], "account_id" => $db->Record["compte"], "domain_id" => $db->Record["id"], "object_id" => $db->Record["typeid"] ];
+        }
+        return $metrics;
     }
 
 
