@@ -3,36 +3,27 @@
 class metrics_sympa extends metrics_base {
 
 
-    public $prefix="sympa"; 
     public $description="Sympa mailing-list-related metrics";
 
     // list of metrics handled by this class:
-    // those metrics will be prefixed by '${prefix}_' in their final name.
+    // those metrics should ALL start by 'sympa_'
+    // type = counter or gauge
+    // unit = null or bytes or ?
+    // object = null if not applicable, or email or subdomain or db or domtype or ? 
     // see https://prometheus.io/docs/concepts/metric_types/ and https://prometheus.io/docs/practices/naming/ for metric type & naming:
-    public $list=[
-        // defaults are stored per pop/imap/smtp account, but can be computed per domain, or per alternc account.
+    public $info=[
         // those metrics are a bit heavy to compute, so they are computer daily via a crontab.
-        "archive_size_bytes" => "Size of web archive per list, in bytes",
-        "www_hits_count" => "Number of web pages served by wwwsympa per virtual robot (= per domain)", 
-        "mail_count" => "Number of emails sent per list per day",
-        "mail_total_size_bytes" => "Total size of emails sent per list per day, in bytes",
-        "mail_recipient_count" => "Total number of recipients of emails per list per day",
+        "sympa_archive_size_bytes" => [ "name" =>  "Size of web archive per list, in bytes", "type" => "gauge", "unit" => "bytes", "object" => "email" ],
+        "sympa_www_hits_count" => [ "name" =>  "Number of web pages served by wwwsympa per virtual robot (= per domain)", "type" => "counter", "unit" => null, "object" => "domain" ],
+        "sympa_mail_count" => [ "name" =>  "Number of emails sent per list per day", "type" => "counter",  "unit" => null, "object" => "email" ],
+        "sympa_mail_total_size_bytes" => [ "name" =>  "Total size of emails sent per list per day,  in bytes", "type" => "counter", "unit" => "bytes", "object" => "email" ],
+        "sympa_mail_recipient_count" => [ "name" =>  "Total number of recipients of emails per list per day", "type" => "counter", "unit" => null, "object" => "email" ],
         // those metrics are computed "on the fly" when you get them.
-        "list_count" => "Number of mailing-lists per virtual robot (= per domain)",
-        "robot_count" => "Number of virtual-robots enabled in Sympa",
-    ];
-
-    public $types=[
-        "archive_size_bytes" => "gauge",
-        "www_hits_count" => "counter", 
-        "mail_count" => "counter",
-        "mail_total_size_bytes" => "counter",
-        "mail_recipient_count" => "counter",
-        "list_count" => "gauge",
-        "robot_count" => "gauge",
+        "sympa_list_count" => [ "name" =>  "Number of mailing-lists per virtual robot (= per domain)", "type" => "gauge", "unit" => null, "object" => null ],
+        "sympa_robot_count" => [ "name" =>  "Number of virtual-robots enabled in Sympa", "type" => "gauge", "unit" => null, "object" => null ],
     ];
     
-    var $manualmetrics=["list_count","robot_count"];
+    var $manualmetrics=["sympa_list_count","sympa_robot_count"];
 
     /** 
      * function called at install time to install the metric tables if needed.
@@ -96,10 +87,10 @@ class metrics_sympa extends metrics_base {
         $first=true;
 
         // we will remember the pop/imap/smtp sessions as we go:
-        $www_hits_count=[]; // hits on wwsympa, per robot (so, per domain) 
-        $mail_count=[]; // number of email sent per list
-        $mail_total_size_bytes=[]; // number of bytes sent (bytes*recipients) via SMTP for a list.
-        $mail_recipient_count=[]; // total number of recipients per day per list. 
+        $sympa_www_hits_count=[]; // hits on wwsympa, per robot (so, per domain) 
+        $sympa_mail_count=[]; // number of email sent per list
+        $sympa_mail_total_size_bytes=[]; // number of bytes sent (bytes*recipients) via SMTP for a list.
+        $sympa_mail_recipient_count=[]; // total number of recipients per day per list. 
         $count=0; $line=0; $match=0;
         while ($s=fgets($f,65536)) {
             $line++;
@@ -117,20 +108,20 @@ class metrics_sympa extends metrics_base {
 
             //  search for sympa incoming pattern:
             if (preg_match('#sympa_msg\[[0-9]+\]: notice Sympa::Spindle::ProcessIncoming::_twist.. Processing Sympa::Message <([^>]+)>;#',$s,$mat)) {
-                if (isset($mail_count[$mat[1]])) $mail_count[$mat[1]]++; else $mail_count[$mat[1]]=1;
+                if (isset($sympa_mail_count[$mat[1]])) $sympa_mail_count[$mat[1]]++; else $sympa_mail_count[$mat[1]]=1;
                 $match++;
             }
 
             // search for sympa outgoing pattern:
             if (preg_match('#sympa_msg\[[0-9]+\]: info Sympa::Spindle::ToList::_twist.. Message Sympa::Message <[^>]+> for Sympa::List <([^>]+)> .*, ([0-9]+) subscribers.*, size=([0-9]+)$#',$s,$mat)) { // list / rcpt / size 
-                if (isset($mail_recipient_count[$mat[1]])) $mail_recipient_count[$mat[1]]+=intval($mat[2]); else $mail_recipient_count[$mat[1]]=intval($mat[2]);
-                if (isset($mail_total_size_bytes[$mat[1]])) $mail_total_size_bytes[$mat[1]]+=intval($mat[2])*intval($mat[3]); else $mail_total_size_bytes[$mat[1]]=intval($mat[2])*intval($mat[3]);
+                if (isset($sympa_mail_recipient_count[$mat[1]])) $sympa_mail_recipient_count[$mat[1]]+=intval($mat[2]); else $sympa_mail_recipient_count[$mat[1]]=intval($mat[2]);
+                if (isset($sympa_mail_total_size_bytes[$mat[1]])) $sympa_mail_total_size_bytes[$mat[1]]+=intval($mat[2])*intval($mat[3]); else $sympa_mail_total_size_bytes[$mat[1]]=intval($mat[2])*intval($mat[3]);
                 $match++;
             }
 
             // hit on wwsympa, per robot: Oct  6 09:52:03 fcgtweb1 wwsympa[3490023]: info main::do_home() [robot listes.ferc-cgt.org] [session 57885542889862] [client 212.83.165.226             // now search for wwsympa patterin:
             if (preg_match('#wwsympa\[[0-9]+\]: .*\[robot ([^\]]+)\] #',$s,$mat)) {
-                if (isset($www_hits_count[$mat[1]])) $www_hits_count[$mat[1]]++; else $www_hits_count[$mat[1]]=1;
+                if (isset($sympa_www_hits_count[$mat[1]])) $sympa_www_hits_count[$mat[1]]++; else $sympa_www_hits_count[$mat[1]]=1;
                 $match++;
             }
             $lastline=$s;
@@ -160,15 +151,15 @@ class metrics_sympa extends metrics_base {
                 $first=true;
             }
             if (!$first) $sql.=",";
-            $sql.=" ('sympa','archive_size_bytes',".$one[0].",".$one[1].",".$one[2].",".$one[3].") ";
+            $sql.=" ('sympa','sympa_archive_size_bytes',".$one[0].",".$one[1].",".$one[2].",".$one[3].") ";
             $first=false;
             $count++;
         }
         if (!$first) $db->query($sql);
         
-        foreach($this->types as $var=>$type) {
+        foreach($this->info as $var=>$info) {
             if (in_array($var,$this->manualmetrics)) continue; // those are not computed here 
-            if ($var=="archive_size_bytes") continue; // this one neither
+            if ($var=="sympa_archive_size_bytes") continue; // this one neither
 
             $sql="";
             foreach($$var as $email => $value) {
@@ -178,7 +169,7 @@ class metrics_sympa extends metrics_base {
                     $sql="INSERT INTO metrics (class,name,account_id,domain_id,object_id,value) VALUES ";
                     $first=true;
                 }
-                if ($var=="www_hits_count") {
+                if ($var=="sympa_sympa_www_hits_count") {
                     $id=$this->getDomainInfo($email); // it's a ROBOT (therefore a DOMAIN, not a MAIL)
                     $id[2]="null"; // no object_id involved
                 } else {
@@ -286,7 +277,7 @@ class metrics_sympa extends metrics_base {
         if (in_array($metric["name"],$perdomain)) {
             $db->query("SELECT id,mail FROM sympa WHERE id=".intval($metric["object_id"]).";");
             if ($db->next_record()) {
-                return $db->Record["mail"]; // no cache here 
+                return $db->Record["mail"]; // no cache here, it's a FQDN
             }
         } else {
             // all the others are per-list.

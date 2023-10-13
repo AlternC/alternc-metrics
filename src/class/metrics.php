@@ -99,14 +99,13 @@ class metrics {
     /* -------------------------------------------------------------------------------- */
     /**
      * return all metric informations
-     * call the info() method on all metrics_* classes.
+     * get the info hash on all metrics_* classes.
      */
     public function info() {
         $info=[];
         foreach($this->metricInstance as $module=>$object) {
             if (isset($this->classes[$module])) {
-                $i=$object->info();
-                $info=array_merge($info,$i);
+                $info=array_merge($info,$object->info);
             }
         }
         return $info;
@@ -118,7 +117,7 @@ class metrics {
      * returns one or more metric (the latest recorded value) from one or all classes / names, for one account or all, for one domain or all.
      * metrics can be dereferenced, in that case account, domain, and object name are returned too, as strings.
      * @param $filter array of filtering values: 
-     * classes=>[list of metric classes NAME to restrict to, all if unspecified] 
+     * classes => [list of metric classes NAME to restrict to, all if unspecified] 
      * names => [list of metric names, all if unspecified],   (you can use classes or names, but not both)
      * accounts => [list of accounts-ID to restrict to, all if unspecified], 
      * domains => [list of domain-IDs to restrict to, all if unspecified]
@@ -341,22 +340,6 @@ class metrics_base {
                 $ht[]=$db->Record["name"];
         }
         return $ht;
-    }
-
-    /**
-     * return informations on all available metrics for a class.
-     * you may override this function if needed.*
-     * @return array a list of hashes containing the following keys:
-     * name = the full name of a metric
-     * type = the type of a metric (gauge, counter...)
-     * description = an english description of the metric content.
-     */
-    public function info() {
-        $i=[];
-        foreach($this->list as $k=>$v) {
-            $i[]=["name" => $this->prefix."_".$k, "type" => $this->types[$k], "description" => $v ];
-        }
-        return $i;
     }
     
     /**

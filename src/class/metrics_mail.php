@@ -2,49 +2,34 @@
 
 class metrics_mail extends metrics_base {
 
-    public $prefix="mail"; 
     public $description="email-related (pop imap & smtp) metrics";
 
     // list of metrics handled by this class:
-    // those metrics will be prefixed by 'mail_' in their final name.
+    // those metrics should ALL start by 'mail_'
+    // type = counter or gauge
+    // unit = null or bytes or ?
+    // object = null if not applicable, or email or subdomain or db or domtype or ? 
     // see https://prometheus.io/docs/concepts/metric_types/ and https://prometheus.io/docs/practices/naming/ for metric type & naming:
-    public $list=[
+    public $info=[
         // defaults are stored per pop/imap/smtp account, but can be computed per domain, or per alternc account.
         // those metrics are a bit heavy to compute, so they are computer daily via a crontab.
-        "pop_login_count" => "number of POP login per account per day", 
-        "pop_usage_out_bytes"  => "outgoing bandwidth used via POP protocol per account per day", 
-        "imap_login_count" => "number of IMAP login per account per day",
-        "imap_usage_in_bytes" => "incoming bandwidth used via IMAP protocol per account per day",
-        "imap_usage_out_bytes" => "outgoing bandwidth used via IMAP protocol per account per day",
-        "smtp_relay_message_count" => "number of messages sent via authenticated SMTP per account per day",
-        "smtp_relay_message_size_bytes" => "size of all messages sent via authenticated SMTP per account per day",
-        "smtp_relay_message_recipient_count" => "total number of recipients for messages sent via authenticated SMTP per account per day",
-        "smtp_incoming_message_size_bytes" => "size of all messages received via SMTP on an IMAP account per account per day",
-        "smtp_incoming_message_count" => "number of messages received via SMTP on an IMAP account per account per day",
+        "mail_pop_login_count" => [ "name" => "number of POP login per account per day", "type" => "counter", "unit" => null, "object" => "email" ],
+        "mail_pop_usage_out_bytes"  => [ "name" => "outgoing bandwidth used via POP protocol per account per day", "type" => "counter", "unit" => "bytes", "object" => "email" ], 
+        "mail_imap_login_count" => [ "name" => "number of IMAP login per account per day", "type" => "counter", "unit" => null, "object" => "email" ],
+        "mail_imap_usage_in_bytes" => [ "name" => "incoming bandwidth used via IMAP protocol per account per day", "type" => "counter", "unit" => "bytes", "object" => "email" ],
+        "mail_imap_usage_out_bytes" => [ "name" => "outgoing bandwidth used via IMAP protocol per account per day", "type" => "counter", "unit" => "bytes", "object" => "email" ],
+        "mail_smtp_relay_message_count" => [ "name" => "number of messages sent via authenticated SMTP per account per day", "type" => "counter", "unit" => null, "object" => "email" ],
+        "mail_smtp_relay_message_size_bytes" => [ "name" => "size of all messages sent via authenticated SMTP per account per day", "type" => "counter", "unit" => "bytes", "object" => "email" ],
+        "mail_smtp_relay_message_recipient_count" => [ "name" => "total number of recipients for messages sent via authenticated SMTP per account per day", "type" => "counter", "unit" => null, "object" => "email" ],
+        "mail_smtp_incoming_message_size_bytes" => [ "name" => "size of all messages received via SMTP on an IMAP account per account per day", "type" => "counter", "unit" => "bytes", "object" => "email" ],
+        "mail_smtp_incoming_message_count" => [ "name" => "number of messages received via SMTP on an IMAP account per account per day", "type" => "counter", "unit" => null, "object" => "email" ],
         // those metrics are computed "on the fly" when you get them.
-        "mailbox_count" => "number of imap mailboxes per domain",
-        "mailbox_size_bytes" => "current size of each imap mailbox per domain",
-        "alias_count" => "number of mail aliases per domain",
+        "mail_mailbox_count" => [ "name" => "number of imap mailboxes per domain", "type" => "gauge", "unit" => null, "object" => null ],
+        "mail_mailbox_size_bytes" => [ "name" => "current size of each imap mailbox", "type" => "gauge", "unit" => "bytes", "object" => "email" ],
+        "mail_alias_count" => [ "name" => "number of mail aliases per domain", "type" => "gauge", "unit" => null, "object" => null ],
     ];
 
-    // counter = countable and summable values.  gauge = countable and non-summable 
-    public $types=[
-        "imap_login_count" => "counter", 
-        "imap_usage_in_bytes" => "counter", 
-        "imap_usage_out_bytes" => "counter", 
-        "pop_login_count" => "counter", 
-        "pop_usage_out_bytes" => "counter", 
-        "smtp_relay_message_count" => "counter", 
-        "smtp_relay_message_recipient_count" => "counter", 
-        "smtp_relay_message_size_bytes" => "counter", 
-        "smtp_incoming_message_count" => "counter", 
-        "smtp_incoming_message_size_bytes" => "counter", 
-        "mailbox_count" => "gauge",
-        "mailbox_size_bytes" => "gauge",
-        "alias_count" => "gauge",
-    ];
-
-    var $manualmetrics=["mailbox_count","mailbox_size_bytes","alias_count"];
+    var $manualmetrics=["mail_mailbox_count","mail_mailbox_size_bytes","mail_alias_count"];
 
     /**
      * collect all metrics for the mail service.
@@ -61,10 +46,16 @@ class metrics_mail extends metrics_base {
 
         // we will remember the pop/imap/smtp sessions as we go:
         $pop=[]; $imap=[]; $smtp=[];
-        $pop_login_count=[];  $pop_usage_out_bytes=[];
-        $imap_login_count=[]; $imap_usage_in_bytes=[]; $imap_usage_out_bytes=[];
-        $smtp_relay_message_count=[]; $smtp_relay_message_size_bytes=[]; $smtp_relay_message_recipient_count=[]; 
-        $smtp_incoming_message_size_bytes=[]; $smtp_incoming_message_count=[];
+        $mail_pop_login_count=[];
+        $mail_pop_usage_out_bytes=[];
+        $mail_imap_login_count=[];
+        $mail_imap_usage_in_bytes=[];
+        $mail_imap_usage_out_bytes=[];
+        $mail_smtp_relay_message_count=[];
+        $mail_smtp_relay_message_size_bytes=[];
+        $mail_smtp_relay_message_recipient_count=[]; 
+        $mail_smtp_incoming_message_size_bytes=[];
+        $mail_smtp_incoming_message_count=[];
         $count=0; $line=0; $match=0;
         while ($s=fgets($f,65536)) {
             $line++;
@@ -82,36 +73,36 @@ class metrics_mail extends metrics_base {
 
             // now search for dovecot pop pattern:
             if (preg_match('#dovecot: pop3-login: Login: user=<([^>]*)>, .*session=<([^>]*)>#',$s,$mat)) {
-                if (isset($pop_login_count[$mat[1]])) $pop_login_count[$mat[1]]++; else $pop_login_count[$mat[1]]=1;
+                if (isset($mail_pop_login_count[$mat[1]])) $mail_pop_login_count[$mat[1]]++; else $mail_pop_login_count[$mat[1]]=1;
                 $match++;
             }
             if (preg_match('#dovecot: pop3\(([^\)]*)\)<[^>]*><([^>]*)>: Disconnected:.*, size=([0-9]*)#',$s,$mat)) {
-                if (isset($pop_usage_out_bytes[$mat[1]])) $pop_usage_out_bytes[$mat[1]]+=intval($mat[3]); else $pop_usage_out_bytes[$mat[1]]=intval($mat[3]);
+                if (isset($mail_pop_usage_out_bytes[$mat[1]])) $mail_pop_usage_out_bytes[$mat[1]]+=intval($mat[3]); else $mail_pop_usage_out_bytes[$mat[1]]=intval($mat[3]);
                 $match++;
             }
 
             // now search for dovecot imap pattern:
             if (preg_match('#dovecot: imap-login: Login: user=<([^>]*)>, .*session=<([^>]*)>#',$s,$mat)) {
-                if (isset($imap_login_count[$mat[1]])) $imap_login_count[$mat[1]]++; else $imap_login_count[$mat[1]]=1;
+                if (isset($mail_imap_login_count[$mat[1]])) $mail_imap_login_count[$mat[1]]++; else $mail_imap_login_count[$mat[1]]=1;
                 $match++;
             }
             if (preg_match('#dovecot: imap\(([^\)]*)\)<[^>]*><([^>]*)>: (Connection closed|Logged out).*in=([0-9]*) out=([0-9]*) #',$s,$mat)) {
-                if (isset($imap_usage_in_bytes[$mat[1]])) $imap_usage_in_bytes[$mat[1]]+=intval($mat[4]); else $imap_usage_in_bytes[$mat[1]]=intval($mat[4]);
-                if (isset($imap_usage_out_bytes[$mat[1]])) $imap_usage_out_bytes[$mat[1]]+=intval($mat[5]); else $imap_usage_out_bytes[$mat[1]]=intval($mat[5]);
+                if (isset($mail_imap_usage_in_bytes[$mat[1]])) $mail_imap_usage_in_bytes[$mat[1]]+=intval($mat[4]); else $mail_imap_usage_in_bytes[$mat[1]]=intval($mat[4]);
+                if (isset($mail_imap_usage_out_bytes[$mat[1]])) $mail_imap_usage_out_bytes[$mat[1]]+=intval($mat[5]); else $mail_imap_usage_out_bytes[$mat[1]]=intval($mat[5]);
                 $match++;
             }
 
             // now search for postfix smtp pattern:
             if (preg_match('# postfix.*\[[0-9]+\]: ([0-9A-F]+): client=.*, sasl_username=(.*)#',$s,$mat)) {
-                if (isset($smtp_relay_message_count[$mat[2]])) $smtp_relay_message_count[$mat[2]]++; else $smtp_relay_message_count[$mat[2]]=1;
+                if (isset($mail_smtp_relay_message_count[$mat[2]])) $mail_smtp_relay_message_count[$mat[2]]++; else $mail_smtp_relay_message_count[$mat[2]]=1;
                 $smtp[$mat[1]]=$mat[2];
                 $match++;
             }
             if (preg_match('#postfix/qmgr\[[0-9]+\]: ([0-9A-F]+): .*, size=([0-9]+), nrcpt=([0-9]+)#',$s,$mat)) {
                 if (isset($smtp[$mat[1]])) {
                     // we know the original sasl_username, let's save those statistics
-                    if (isset($smtp_relay_message_size_bytes[ $smtp[$mat[1]] ])) $smtp_relay_message_size_bytes[ $smtp[$mat[1]] ]+=intval($mat[2]); else $smtp_relay_message_size_bytes[ $smtp[$mat[1]] ]=intval($mat[2]);
-                    if (isset($smtp_relay_message_recipient_count[ $smtp[$mat[1]] ])) $smtp_relay_message_recipient_count[ $smtp[$mat[1]] ]+=intval($mat[3]); else $smtp_relay_message_recipient_count[ $smtp[$mat[1]] ]=intval($mat[3]);
+                    if (isset($mail_smtp_relay_message_size_bytes[ $smtp[$mat[1]] ])) $mail_smtp_relay_message_size_bytes[ $smtp[$mat[1]] ]+=intval($mat[2]); else $mail_smtp_relay_message_size_bytes[ $smtp[$mat[1]] ]=intval($mat[2]);
+                    if (isset($mail_smtp_relay_message_recipient_count[ $smtp[$mat[1]] ])) $mail_smtp_relay_message_recipient_count[ $smtp[$mat[1]] ]+=intval($mat[3]); else $mail_smtp_relay_message_recipient_count[ $smtp[$mat[1]] ]=intval($mat[3]);
                     unset($smtp[$mat[1]]);
                 }
                 $match++;
@@ -124,8 +115,8 @@ class metrics_mail extends metrics_base {
             if (preg_match('#postfix/pipe\[[0-9]+\]: ([0-9A-F]+): to=<([^>]+)>, relay=dovecot.*, status=sent #',$s,$mat)) {
                 if (isset($smtpqueue[ $mat[1] ])) {
                     // we know the size from the qmgr via QueueID, let's save those statistics for users now
-                    if (isset($smtp_incoming_message_size_bytes[ $mat[2] ])) $smtp_incoming_message_size_bytes[ $mat[2] ]+=intval($smtpqueue[ $mat[1] ]); else $smtp_incoming_message_size_bytes[ $mat[2] ]=intval($smtpqueue[ $mat[1] ]);
-                    if (isset($smtp_incoming_message_count[ $mat[2] ])) $smtp_incoming_message_count[ $mat[2] ]+=intval($smtpqueue[ $mat[1] ]); else $smtp_incoming_message_count[ $mat[2] ]=intval($smtpqueue[ $mat[1] ]);
+                    if (isset($mail_smtp_incoming_message_size_bytes[ $mat[2] ])) $mail_smtp_incoming_message_size_bytes[ $mat[2] ]+=intval($smtpqueue[ $mat[1] ]); else $mail_smtp_incoming_message_size_bytes[ $mat[2] ]=intval($smtpqueue[ $mat[1] ]);
+                    if (isset($mail_smtp_incoming_message_count[ $mat[2] ])) $mail_smtp_incoming_message_count[ $mat[2] ]+=intval($smtpqueue[ $mat[1] ]); else $mail_smtp_incoming_message_count[ $mat[2] ]=intval($smtpqueue[ $mat[1] ]);
                 }
                 $match++;
             }
@@ -147,7 +138,7 @@ class metrics_mail extends metrics_base {
         if ($this->conf["debug"]) echo date("Y-m-d H:i:s")." mail: inserting metrics, please wait\n";
         // and store those stats in the db:
 
-        foreach($this->types as $var=>$type) {
+        foreach($this->list as $var=>$info) {
             if (in_array($var,$this->manualmetrics)) continue; // those are not computed here 
 
             //  we used to do that on each metric : 
@@ -192,15 +183,20 @@ class metrics_mail extends metrics_base {
             }
         }
 
+        $null=["mail_mailbox_count","mail_alias_count"];
+        if (in_array($metric["name"],$null)) {
+            return null;
+        }
+        
         $perdomain=["mail_mailbox_count", "mail_mailbox_size_bytes", "mail_alias_count"];
         if (in_array($metric["name"],$perdomain)) {
             return $this->getDomainName($metric["object_id"]);
-        } else {
-            if (isset($ocache[$metric["object_id"]])) return $ocache[$metric["object_id"]];
-            $db->query("SELECT id,address FROM address WHERE id=".intval($metric["object_id"]).";");
-            if ($db->next_record()) {
-                return $ocache[$db->Record["id"]]=$db->Record["address"];
-            }
+        }
+        
+        if (isset($ocache[$metric["object_id"]])) return $ocache[$metric["object_id"]];
+        $db->query("SELECT id,address FROM address WHERE id=".intval($metric["object_id"]).";");
+        if ($db->next_record()) {
+            return $ocache[$db->Record["id"]]=$db->Record["address"];
         }
         return null;
     }

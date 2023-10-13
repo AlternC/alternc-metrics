@@ -3,27 +3,24 @@
 class metrics_mysql extends metrics_base {
 
 
-    public $prefix="mysql"; 
     public $description="mysql-related metrics";
 
     // list of metrics handled by this class:
-    // those metrics will be prefixed by '${prefix}_' in their final name.
+    // those metrics should ALL start by 'mysql_'
+    // type = counter or gauge
+    // unit = null or bytes or ?
+    // object = null if not applicable, or email or subdomain or db or ? 
     // see https://prometheus.io/docs/concepts/metric_types/ and https://prometheus.io/docs/practices/naming/ for metric type & naming:
-    public $list=[
-        // defaults are stored per pop/imap/smtp account, but can be computed per domain, or per alternc account.
+    public $info=[
         // those metrics are a bit heavy to compute, so they are computer daily via a crontab.
-        "db_size_bytes" => "The size of each database in bytes", 
+        "mysql_db_size_bytes" => [ "name" => "The size of each database in bytes", "type" => "gauge", "unit" => "bytes", "object" => "db" ],
         // those metrics are computed "on the fly" when you get them.
-        "db_count" => "Number of MySQL database per account",
+        "mysql_db_count" => [ "Number of MySQL database per account", "type" => "gauge", "unit" => null, "object" => null ],
     ];
 
-    public $types=[
-        "db_size_bytes" => "gauge", 
-        "db_count" => "gauge",
-    ];
+    var $manualmetrics=["mysql_db_count"];
 
-    var $manualmetrics=["db_count"];
-
+    
     /**
      * collect all metrics for the mysql DB service.
      * number of DB and number of table per DB can be easily computed via enumeration, but size not. 
@@ -36,14 +33,14 @@ class metrics_mysql extends metrics_base {
         while ($db->next_record()) {
             $dbs[$db->Record["id"]]=$db->Record;
         }
-        $db->query("DELETE FROM metrics WHERE class='db';");
+        $db->query("DELETE FROM metrics WHERE class='mysql';");
         // for each db, we enumerate its size, 
         $count=0;
         foreach($dbs as $id => $data) {
             $db->query("SELECT SUM(data_length + index_length) AS size FROM information_schema.TABLES WHERE table_schema='".addslashes($data["db"])."';");
             $db->next_record();
             if ($db->Record["size"]) {
-                $db->query("INSERT INTO metrics SET class='mysql', name='db_size_bytes', account_id=".$data["uid"].", object_id=".$id.", value=".$db->Record["size"].";");
+                $db->query("INSERT INTO metrics SET class='mysql', name='mysql_db_size_bytes', account_id=".$data["uid"].", object_id=".$id.", value=".$db->Record["size"].";");
                 $count++;
                 if ($this->conf["debug"] && $count%10==0) echo date("Y-m-d H:i:s")." mysql: collected $count metrics\n";
             }
@@ -60,7 +57,7 @@ class metrics_mysql extends metrics_base {
             return $this->getAccountName($metric["object_id"]);
         }
 
-//        "db_size_bytes"
+//        "mysql_db_size_bytes"
         static $ocache=[];
 
         if ($cacheallobjects) {
