@@ -12,15 +12,15 @@ class metrics_dom extends metrics_base {
     public $info=[
         // defaults are stored per subdomain, but can be computed per domain, or per alternc account.
         // those metrics are a bit heavy to compute, so they are computer daily via a crontab.
-        "dom_web_hits_count" => [ "name" => "Number of HTTP hits per sub_domain per day", "type" => "counter", "unit" => null, "object" => "subdomain" ], 
-        "dom_web_out_bytes" => [ "name" => "HTTP traffic in bytes per sub_domain per day", "type" => "counter", "unit" => "bytes" ],
-        "dom_web_hits_404_count" => [ "name" => "Number of HTTP hits per sub_domain per day that answered with a 404 http-code", "type" => "counter", "unit" => null, "object" => "subdomain" ],
-        "dom_web_hits_5xx_count" => [ "name" => "Number of HTTP hits per sub_domain per day that answered with a 502/503/5xx http-code", "type" => "counter", "unit" => null, "object" => "subdomain" ],        
+        "dom_web_hits_count" => [ "description" => "Number of HTTP hits per sub_domain per day", "type" => "counter", "unit" => null, "object" => "subdomain" ], 
+        "dom_web_out_bytes" => [ "description" => "HTTP traffic in bytes per sub_domain per day", "type" => "counter", "unit" => "bytes" ],
+        "dom_web_hits_404_count" => [ "description" => "Number of HTTP hits per sub_domain per day that answered with a 404 http-code", "type" => "counter", "unit" => null, "object" => "subdomain" ],
+        "dom_web_hits_5xx_count" => [ "description" => "Number of HTTP hits per sub_domain per day that answered with a 502/503/5xx http-code", "type" => "counter", "unit" => null, "object" => "subdomain" ],        
         // those metrics are computed "on the fly" when you get them.
-        "dom_subdomain_count" => [ "name" => "Number of sub_domains entries (DNS & hosting) per domain", "type" => "gauge", "unit" => null, "object" => null ],
-        "dom_domain_count" => [ "name" => "Total number of domains on the server", "type" => "gauge", "unit" => null, "object" => null ],
-        "dom_domain_type_count" => [ "name" => "Number of sub_domain objects of each domain-type (a, mx, php81-fpm...)", "type" => "gauge", "unit" => null, "object" => "domtype" ],
-        "dom_web_size_bytes" => [ "name" => "Size of each alternc account in bytes", "type" => "gauge", "unit" => "bytes", "object" => null ],
+        "dom_subdomain_count" => [ "description" => "Number of sub_domains entries (DNS & hosting) per domain", "type" => "gauge", "unit" => null, "object" => null ],
+        "dom_domain_count" => [ "description" => "Total number of domains on the server", "type" => "gauge", "unit" => null, "object" => null ],
+        "dom_domain_type_count" => [ "description" => "Number of sub_domain objects of each domain-type (a, mx, php81-fpm...)", "type" => "gauge", "unit" => null, "object" => "domtype" ],
+        "dom_web_size_bytes" => [ "description" => "Size of each alternc account in bytes", "type" => "gauge", "unit" => "bytes", "object" => null ],
     ];
 
     var $manualmetrics=["dom_subdomain_count", "dom_domain_count", "dom_domain_type_count"];

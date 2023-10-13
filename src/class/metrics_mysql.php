@@ -13,9 +13,9 @@ class metrics_mysql extends metrics_base {
     // see https://prometheus.io/docs/concepts/metric_types/ and https://prometheus.io/docs/practices/naming/ for metric type & naming:
     public $info=[
         // those metrics are a bit heavy to compute, so they are computer daily via a crontab.
-        "mysql_db_size_bytes" => [ "name" => "The size of each database in bytes", "type" => "gauge", "unit" => "bytes", "object" => "db" ],
+        "mysql_db_size_bytes" => [ "description" => "The size of each database in bytes", "type" => "gauge", "unit" => "bytes", "object" => "db" ],
         // those metrics are computed "on the fly" when you get them.
-        "mysql_db_count" => [ "Number of MySQL database per account", "type" => "gauge", "unit" => null, "object" => null ],
+        "mysql_db_count" => [ "description" => "Number of MySQL database per account", "type" => "gauge", "unit" => null, "object" => null ],
     ];
 
     var $manualmetrics=["mysql_db_count"];

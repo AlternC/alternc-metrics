@@ -113,6 +113,22 @@ class metrics {
 
 
     /* -------------------------------------------------------------------------------- */
+    /**
+     * return all metric modules informations
+     * get the description string on all metrics_* classes.
+     */
+    public function modules() {
+        $modules=[];
+        foreach($this->metricInstance as $module=>$object) {
+            if (isset($this->classes[$module])) {
+                $modules[$module]=$object->description;
+            }
+        }
+        return $modules;
+    }
+
+
+    /* -------------------------------------------------------------------------------- */
     /** 
      * returns one or more metric (the latest recorded value) from one or all classes / names, for one account or all, for one domain or all.
      * metrics can be dereferenced, in that case account, domain, and object name are returned too, as strings.

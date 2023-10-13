@@ -13,14 +13,14 @@ class metrics_sympa extends metrics_base {
     // see https://prometheus.io/docs/concepts/metric_types/ and https://prometheus.io/docs/practices/naming/ for metric type & naming:
     public $info=[
         // those metrics are a bit heavy to compute, so they are computer daily via a crontab.
-        "sympa_archive_size_bytes" => [ "name" =>  "Size of web archive per list, in bytes", "type" => "gauge", "unit" => "bytes", "object" => "email" ],
-        "sympa_www_hits_count" => [ "name" =>  "Number of web pages served by wwwsympa per virtual robot (= per domain)", "type" => "counter", "unit" => null, "object" => "domain" ],
-        "sympa_mail_count" => [ "name" =>  "Number of emails sent per list per day", "type" => "counter",  "unit" => null, "object" => "email" ],
-        "sympa_mail_total_size_bytes" => [ "name" =>  "Total size of emails sent per list per day,  in bytes", "type" => "counter", "unit" => "bytes", "object" => "email" ],
-        "sympa_mail_recipient_count" => [ "name" =>  "Total number of recipients of emails per list per day", "type" => "counter", "unit" => null, "object" => "email" ],
+        "sympa_archive_size_bytes" => [ "description" =>  "Size of web archive per list, in bytes", "type" => "gauge", "unit" => "bytes", "object" => "email" ],
+        "sympa_www_hits_count" => [ "description" =>  "Number of web pages served by wwwsympa per virtual robot (= per domain)", "type" => "counter", "unit" => null, "object" => "domain" ],
+        "sympa_mail_count" => [ "description" =>  "Number of emails sent per list per day", "type" => "counter",  "unit" => null, "object" => "email" ],
+        "sympa_mail_total_size_bytes" => [ "description" =>  "Total size of emails sent per list per day,  in bytes", "type" => "counter", "unit" => "bytes", "object" => "email" ],
+        "sympa_mail_recipient_count" => [ "description" =>  "Total number of recipients of emails per list per day", "type" => "counter", "unit" => null, "object" => "email" ],
         // those metrics are computed "on the fly" when you get them.
-        "sympa_list_count" => [ "name" =>  "Number of mailing-lists per virtual robot (= per domain)", "type" => "gauge", "unit" => null, "object" => null ],
-        "sympa_robot_count" => [ "name" =>  "Number of virtual-robots enabled in Sympa", "type" => "gauge", "unit" => null, "object" => null ],
+        "sympa_list_count" => [ "description" =>  "Number of mailing-lists per virtual robot (= per domain)", "type" => "gauge", "unit" => null, "object" => null ],
+        "sympa_robot_count" => [ "description" =>  "Number of virtual-robots enabled in Sympa", "type" => "gauge", "unit" => null, "object" => null ],
     ];
     
     var $manualmetrics=["sympa_list_count","sympa_robot_count"];

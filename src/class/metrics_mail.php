@@ -13,20 +13,20 @@ class metrics_mail extends metrics_base {
     public $info=[
         // defaults are stored per pop/imap/smtp account, but can be computed per domain, or per alternc account.
         // those metrics are a bit heavy to compute, so they are computer daily via a crontab.
-        "mail_pop_login_count" => [ "name" => "number of POP login per account per day", "type" => "counter", "unit" => null, "object" => "email" ],
-        "mail_pop_usage_out_bytes"  => [ "name" => "outgoing bandwidth used via POP protocol per account per day", "type" => "counter", "unit" => "bytes", "object" => "email" ], 
-        "mail_imap_login_count" => [ "name" => "number of IMAP login per account per day", "type" => "counter", "unit" => null, "object" => "email" ],
-        "mail_imap_usage_in_bytes" => [ "name" => "incoming bandwidth used via IMAP protocol per account per day", "type" => "counter", "unit" => "bytes", "object" => "email" ],
-        "mail_imap_usage_out_bytes" => [ "name" => "outgoing bandwidth used via IMAP protocol per account per day", "type" => "counter", "unit" => "bytes", "object" => "email" ],
-        "mail_smtp_relay_message_count" => [ "name" => "number of messages sent via authenticated SMTP per account per day", "type" => "counter", "unit" => null, "object" => "email" ],
-        "mail_smtp_relay_message_size_bytes" => [ "name" => "size of all messages sent via authenticated SMTP per account per day", "type" => "counter", "unit" => "bytes", "object" => "email" ],
-        "mail_smtp_relay_message_recipient_count" => [ "name" => "total number of recipients for messages sent via authenticated SMTP per account per day", "type" => "counter", "unit" => null, "object" => "email" ],
-        "mail_smtp_incoming_message_size_bytes" => [ "name" => "size of all messages received via SMTP on an IMAP account per account per day", "type" => "counter", "unit" => "bytes", "object" => "email" ],
-        "mail_smtp_incoming_message_count" => [ "name" => "number of messages received via SMTP on an IMAP account per account per day", "type" => "counter", "unit" => null, "object" => "email" ],
+        "mail_pop_login_count" => [ "description" => "number of POP login per account per day", "type" => "counter", "unit" => null, "object" => "email" ],
+        "mail_pop_usage_out_bytes"  => [ "description" => "outgoing bandwidth used via POP protocol per account per day", "type" => "counter", "unit" => "bytes", "object" => "email" ], 
+        "mail_imap_login_count" => [ "description" => "number of IMAP login per account per day", "type" => "counter", "unit" => null, "object" => "email" ],
+        "mail_imap_usage_in_bytes" => [ "description" => "incoming bandwidth used via IMAP protocol per account per day", "type" => "counter", "unit" => "bytes", "object" => "email" ],
+        "mail_imap_usage_out_bytes" => [ "description" => "outgoing bandwidth used via IMAP protocol per account per day", "type" => "counter", "unit" => "bytes", "object" => "email" ],
+        "mail_smtp_relay_message_count" => [ "description" => "number of messages sent via authenticated SMTP per account per day", "type" => "counter", "unit" => null, "object" => "email" ],
+        "mail_smtp_relay_message_size_bytes" => [ "description" => "size of all messages sent via authenticated SMTP per account per day", "type" => "counter", "unit" => "bytes", "object" => "email" ],
+        "mail_smtp_relay_message_recipient_count" => [ "description" => "total number of recipients for messages sent via authenticated SMTP per account per day", "type" => "counter", "unit" => null, "object" => "email" ],
+        "mail_smtp_incoming_message_size_bytes" => [ "description" => "size of all messages received via SMTP on an IMAP account per account per day", "type" => "counter", "unit" => "bytes", "object" => "email" ],
+        "mail_smtp_incoming_message_count" => [ "description" => "number of messages received via SMTP on an IMAP account per account per day", "type" => "counter", "unit" => null, "object" => "email" ],
         // those metrics are computed "on the fly" when you get them.
-        "mail_mailbox_count" => [ "name" => "number of imap mailboxes per domain", "type" => "gauge", "unit" => null, "object" => null ],
-        "mail_mailbox_size_bytes" => [ "name" => "current size of each imap mailbox", "type" => "gauge", "unit" => "bytes", "object" => "email" ],
-        "mail_alias_count" => [ "name" => "number of mail aliases per domain", "type" => "gauge", "unit" => null, "object" => null ],
+        "mail_mailbox_count" => [ "description" => "number of imap mailboxes per domain", "type" => "gauge", "unit" => null, "object" => null ],
+        "mail_mailbox_size_bytes" => [ "description" => "current size of each imap mailbox", "type" => "gauge", "unit" => "bytes", "object" => "email" ],
+        "mail_alias_count" => [ "description" => "number of mail aliases per domain", "type" => "gauge", "unit" => null, "object" => null ],
     ];
 
     var $manualmetrics=["mail_mailbox_count","mail_mailbox_size_bytes","mail_alias_count"];
