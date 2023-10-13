@@ -139,13 +139,38 @@ class metrics {
      * classes => [list of metric classes NAME to restrict to, all if unspecified] 
      * names => [list of metric names, all if unspecified],   (you can use classes or names, but not both)
      * accounts => [list of accounts-ID to restrict to, all if unspecified], 
-     * domains => [list of domain-IDs to restrict to, all if unspecified]
+     * domains => [list of domain-IDs to restrict to, all if unspecified] (you can use accounts or domains but not both)
      * @param $dereference array of things to dereference as string too (along with their ids). could be : domain, account, object
      * @returns an array of metrics 
      * each metric has the following keys: 
-     * [ class, name, type, value and, if applicable: account_id, domain_id, object_id, and if dereferenced: account, domain, object
+     * [ name, value and, if applicable: account_id, domain_id, object_id, and if dereferenced: account, domain, object
     */
     public function get($filter=[], $dereference=[]) {
+
+        // filters by accounts or domains should be non-zero IDs, we check that:
+        if (isset($filter["accounts"])) {
+            if (!is_array($filter["accounts"])) unset($filter["accounts"]);
+            else if (!count($filter["accounts"])) unset($filter["accounts"]);
+            else {
+                $fa=[];
+                foreach($filter["accounts"] as $one) {
+                    if (intval($one)) $fa[]=intval($one);
+                }
+                $filter["accounts"]=$fa;
+            }
+        }
+
+        if (isset($filter["domains"])) {
+            if (!is_array($filter["domains"])) unset($filter["domains"]);
+            else if (!count($filter["domains"])) unset($filter["domains"]);
+            else {
+                $fa=[];
+                foreach($filter["domains"] as $one) {
+                    if (intval($one)) $fa[]=intval($one);
+                }
+                $filter["domains"]=$fa;
+            }
+        }
 
         // default values
         if (!is_array($filter) || !count($filter))
@@ -169,7 +194,7 @@ class metrics {
             foreach($filter["names"] as $metric) {
                 list($classname,$metricname)=explode("_",$metric,2); // we get the first part of the metric name: this is the class name 
                 if (isset($this->metricInstance[$classname])) {
-                    $m=$this->metricInstance[$classname]->get($metricname,$filter,$dereference);
+                    $m=$this->metricInstance[$classname]->get($metric,$filter,$dereference);
                     $metrics=array_merge($metrics,$m);
                 } else {
                     echo "error: you requested an unknown metric name: $metric\n";
@@ -197,8 +222,7 @@ class metrics_base {
     // those should be set by the child class:
     public $prefix="";
     public $description="";
-    public $list=[];
-    public $types=[];
+    public $info=[];
     public $manualmetrics=[];
 
 
@@ -384,14 +408,15 @@ class metrics_base {
      */
     public function get($metricname=null, $filter=[], $dereference=[]) {
         global $db;
-        if (is_null($metricname)) $metricname=array_keys($this->types); else $metricname=[$metricname];
+        if (is_null($metricname)) $metricname=array_keys($this->info); else $metricname=[$metricname];
         $metrics=[];
         foreach($metricname as $m) {
             // some metrics are manual, let's get them via get_<metricname>
             if (in_array($m,$this->manualmetrics)) {
                 $func="get_".$m;
                 if (method_exists($this,$func)) {
-                    $metrics=array_merge($metrics, $this->$func($filter) ); // we call the method on the subclass, and merge the metric it returns.
+                    $i=$this->$func($filter) ;
+                    $metrics=array_merge($metrics, $i); // we call the method on the subclass, and merge the metric it returns.
                 }
             } else {
                 // @TODO filter by domain_id or account_id or object_id ? 
@@ -400,7 +425,6 @@ class metrics_base {
                 while ($db->next_record()) {
                     $metrics[]=[
                         "name" => $this->prefix."_".$m,
-                        "type" => $this->types[$m],
                         "value" => $db->Record["value"],
                         "account_id" => $db->Record["account_id"],
                         "domain_id" => $db->Record["domain_id"],
@@ -409,7 +433,6 @@ class metrics_base {
                 }
             }
         }
-
 
         if (isset($dereference) && count($dereference)) {
 
