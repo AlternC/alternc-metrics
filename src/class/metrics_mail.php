@@ -203,6 +203,7 @@ class metrics_mail extends metrics_base {
     }
 
 
+    /* -------------------------------------------------------------------------------- */
     /**
      * returns the number of imap mailboxes per domain
      * may be filtered by accounts or domains (no check is done on their values, sql injection may happen !)
@@ -229,6 +230,11 @@ class metrics_mail extends metrics_base {
     }
 
     
+    /* -------------------------------------------------------------------------------- */
+    /**
+     * returns the number of alias email per domain
+     * may be filtered by accounts or domains (no check is done on their values, sql injection may happen !)
+     */
     function get_mail_alias_count($filter=[]) {
         global $db;
         $sql="SELECT COUNT(*) AS ct, a.domain_id, d.compte FROM recipient m, address a, domaines d ";
@@ -240,7 +246,6 @@ class metrics_mail extends metrics_base {
             $where.="  AND a.domain_id IN (".implode(",",$filter["domains"]).") ";
         }
         $sql.=" WHERE a.mail_action='OK' AND a.id=m.address_id AND d.id=a.domain_id $where GROUP BY a.domain_id ";
-        echo $sql."\n";
         $db->query($sql);
         $metrics=[];
         // a metric = [ name, value and, if applicable: account_id, domain_id, object_id ]
@@ -250,8 +255,28 @@ class metrics_mail extends metrics_base {
         return $metrics;
     }
 
+
+    /* -------------------------------------------------------------------------------- */
+    /**
+     * returns the size of each imap mailboxes 
+     * may be filtered by accounts or domains (no check is done on their values, sql injection may happen !)
+     */
     function get_mail_mailbox_size_bytes($filter=[]) {
         global $db;
+        $sql="SELECT quota_dovecot, a.domain_id, d.compte FROM dovecot_quota q, address a, domaines d WHERE CONCAT(a.address,'@',d.domaine)=q.user AND a.mail_action='OK'  AND d.id=a.domain_id ";
+        if (isset($filter["accounts"])) {
+            $sql.=" AND d.compte IN (".implode(",",$filter["accounts"]).") ";
+        }
+        if (isset($filter["domains"])) {
+            $sql.="  AND a.domain_id IN (".implode(",",$filter["domains"]).") ";
+        }
+        $db->query($sql);
+        $metrics=[];
+        // a metric = [ name, value and, if applicable: account_id, domain_id, object_id ]
+        while ($db->next_record()) {
+            $metrics[]=[ "name" => "mail_mailbox_size_bytes", "value" => $db->Record["quota_dovecot"], "account_id" => $db->Record["compte"], "domain_id" => $db->Record["domain_id"] ];
+        }
+        return $metrics;
     }
 
     
