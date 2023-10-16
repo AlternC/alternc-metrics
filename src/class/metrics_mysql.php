@@ -2,7 +2,7 @@
 
 class metrics_mysql extends metrics_base {
 
-
+    public $prefix="mysql";
     public $description="mysql-related metrics";
 
     // list of metrics handled by this class:

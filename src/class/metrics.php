@@ -55,7 +55,7 @@ class metrics {
       `domain_id` bigint(20) unsigned DEFAULT NULL,
       `object_id` bigint(20) unsigned NOT NULL,
       `value` bigint(20) unsigned DEFAULT NULL,
-      PRIMARY KEY (`class`,`name`,`object_id`),
+      PRIMARY KEY (`class`,`name`,`object_id`,`domain_id`,`account_id`),
       KEY `classacount` (`class`,`account_id`)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
       ");
@@ -424,7 +424,7 @@ class metrics_base {
                 $db->query("SELECT value,account_id,domain_id,object_id FROM metrics where class='".addslashes($this->prefix)."' AND name='".addslashes($m)."';");
                 while ($db->next_record()) {
                     $metrics[]=[
-                        "name" => $this->prefix."_".$m,
+                        "name" => $m,
                         "value" => $db->Record["value"],
                         "account_id" => $db->Record["account_id"],
                         "domain_id" => $db->Record["domain_id"],

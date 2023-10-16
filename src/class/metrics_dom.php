@@ -4,6 +4,7 @@
 class metrics_dom extends metrics_base {
 
 
+    public $prefix="dom";
     public $description="domain & web-hosting-related metrics";
 
     // list of metrics handled by this class:
@@ -93,7 +94,6 @@ class metrics_dom extends metrics_base {
             $count++;
         }
         if (!$first) $db->query($sql);
-
 
         // read all apache2 logs from yesterday and parse web bandwidth and usage per sub_domain.
         if (!is_dir($L_ALTERNC_LOGS)) {

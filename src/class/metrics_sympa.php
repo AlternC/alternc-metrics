@@ -2,7 +2,7 @@
 
 class metrics_sympa extends metrics_base {
 
-
+    public $prefix="sympa";
     public $description="Sympa mailing-list-related metrics";
 
     // list of metrics handled by this class:

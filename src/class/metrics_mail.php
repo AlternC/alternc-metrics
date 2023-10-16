@@ -2,6 +2,7 @@
 
 class metrics_mail extends metrics_base {
 
+    public $prefix="mail";
     public $description="email-related (pop imap & smtp) metrics";
 
     // list of metrics handled by this class:
