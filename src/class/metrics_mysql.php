@@ -91,7 +91,7 @@ class metrics_mysql extends metrics_base {
             $sql.=" AND d.id IN (".implode(",",$filter["domains"]).") ";
         }
         */
-        $sql.=$where." GROUP BY uid ";
+        $sql.=" GROUP BY uid ";
         $db->query($sql);
         $metrics=[];
         // a metric = [ name, value and, if applicable: account_id, domain_id, object_id ]

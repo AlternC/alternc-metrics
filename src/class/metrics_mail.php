@@ -219,7 +219,6 @@ class metrics_mail extends metrics_base {
             $where.="  AND a.domain_id IN (".implode(",",$filter["domains"]).") ";
         }
         $sql.=" WHERE m.mail_action='OK' AND a.id=m.address_id AND d.id=a.domain_id $where GROUP BY a.domain_id ";
-        echo $sql."\n";
         $db->query($sql);
         $metrics=[];
         // a metric = [ name, value and, if applicable: account_id, domain_id, object_id ]
@@ -250,7 +249,7 @@ class metrics_mail extends metrics_base {
         $metrics=[];
         // a metric = [ name, value and, if applicable: account_id, domain_id, object_id ]
         while ($db->next_record()) {
-            $metrics[]=[ "name" => "mail_mailbox_count", "value" => $db->Record["ct"], "account_id" => $db->Record["compte"], "domain_id" => $db->Record["domain_id"], "object_id" => null ];
+            $metrics[]=[ "name" => "mail_alias_count", "value" => $db->Record["ct"], "account_id" => $db->Record["compte"], "domain_id" => $db->Record["domain_id"], "object_id" => null ];
         }
         return $metrics;
     }
