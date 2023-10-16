@@ -143,7 +143,7 @@ class metrics_dom extends metrics_base {
             $db->query("DELETE FROM metrics WHERE class='dom' AND name!='size' AND account_id=".$account.";");
             
             // we fill the db with all those data:
-            foreach($this->types as $var=>$type) {
+            foreach($this->info as $var=>$info) {
                 if (in_array($var,$this->manualmetrics)) continue; // those are not computed here 
                 if ($var=="web_size_bytes") continue; // this one neither :) 
 
