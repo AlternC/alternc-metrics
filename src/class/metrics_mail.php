@@ -139,7 +139,7 @@ class metrics_mail extends metrics_base {
         if ($this->conf["debug"]) echo date("Y-m-d H:i:s")." mail: inserting metrics, please wait\n";
         // and store those stats in the db:
 
-        foreach($this->list as $var=>$info) {
+        foreach($this->info as $var=>$info) {
             if (in_array($var,$this->manualmetrics)) continue; // those are not computed here 
 
             //  we used to do that on each metric : 
