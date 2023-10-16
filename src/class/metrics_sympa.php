@@ -303,7 +303,7 @@ class metrics_sympa extends metrics_base {
         if (isset($filter["domains"])) {
             $sql.=" AND domain_id IN (".implode(",",$filter["domains"]).") ";
         }
-        $sql.=$where." GROUP BY account_id ";
+        $sql.=" GROUP BY account_id ";
         $db->query($sql);
         $metrics=[];
         // a metric = [ name, value and, if applicable: account_id, domain_id, object_id ]
@@ -327,7 +327,8 @@ class metrics_sympa extends metrics_base {
         if (isset($filter["domains"])) {
             $sql.=" AND mail_domain_id IN (".implode(",",$filter["domains"]).") ";
         }
-        $db->query($sql.$where." GROUP BY uid ");
+        $sql.=" GROUP BY uid ";
+        $db->query($sql);
         $metrics=[];
         // a metric = [ name, value and, if applicable: account_id, domain_id, object_id ]
         while ($db->next_record()) {

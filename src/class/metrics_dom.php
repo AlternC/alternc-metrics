@@ -226,7 +226,7 @@ class metrics_dom extends metrics_base {
         if (isset($filter["domains"])) {
             $sql.=" AND d.id IN (".implode(",",$filter["domains"]).") ";
         }
-        $sql.=$where." GROUP BY s.domaine ";
+        $sql.=" GROUP BY s.domaine ";
         $db->query($sql);
         $metrics=[];
         // a metric = [ name, value and, if applicable: account_id, domain_id, object_id ]
