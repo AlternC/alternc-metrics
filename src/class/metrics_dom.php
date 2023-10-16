@@ -119,19 +119,19 @@ class metrics_dom extends metrics_base {
             $fqdncache=[];
 
             // we will remember the hits & bandwidth per FQDN as we go for this account.
-            $web_hits_count=[]; $web_out_bytes=[]; $web_hits_404_count=[]; $web_hits_5xx_count=[];
+            $dom_web_hits_count=[]; $dom_web_out_bytes=[]; $dom_web_hits_404_count=[]; $dom_web_hits_5xx_count=[];
             while ($s=fgets($f,65536)) {                
                 $s=trim($s);
                 if (preg_match('#^[^ ]+ [^ ]+ [^ ]+ [^ ]+ [^ ]+ [^ ]+ [^ ]+ [^ ]+ ([0-9]+) ([0-9]+|-) .* ([^ ]+)$#',$s,$mat)) { // code taille fqdn
                     $fqdn=preg_replace('#:.*$#','',$mat[3]); // sometimes there is a :80 or :433 :/ remove those
-                    if (isset($web_hits_count[$fqdn])) $web_hits_count[$fqdn]++; else $web_hits_count[$fqdn]=1;
+                    if (isset($dom_web_hits_count[$fqdn])) $dom_web_hits_count[$fqdn]++; else $dom_web_hits_count[$fqdn]=1;
                     $hitsize=intval($mat[2]);
-                    if (isset($web_out_bytes[$fqdn])) $web_out_bytes[$fqdn]+=$hitsize; else $web_out_bytes[$fqdn]=$hitsize;
+                    if (isset($dom_web_out_bytes[$fqdn])) $dom_web_out_bytes[$fqdn]+=$hitsize; else $dom_web_out_bytes[$fqdn]=$hitsize;
                     $code=intval($mat[1]);
                     if ($code==404)
-                        if (isset($web_hits_404_count[$fqdn])) $web_hits_404_count[$fqdn]++; else $web_hits_404_count[$fqdn]=1;
+                        if (isset($dom_web_hits_404_count[$fqdn])) $dom_web_hits_404_count[$fqdn]++; else $dom_web_hits_404_count[$fqdn]=1;
                     if ($code>=500 && $code<=599) 
-                        if (isset($web_hits_5xx_count[$fqdn])) $web_hits_5xx_count[$fqdn]++; else $web_hits_5xx_count[$fqdn]=1;
+                        if (isset($dom_web_hits_5xx_count[$fqdn])) $dom_web_hits_5xx_count[$fqdn]++; else $dom_web_hits_5xx_count[$fqdn]=1;
                 } else { // match
                     if ($this->conf["debug"]) echo date("Y-m-d H:i:s")." dom: Log line is not correct: $s\n";
                 }
