@@ -169,7 +169,7 @@ class metrics_sympa extends metrics_base {
                     $sql="INSERT INTO metrics (class,name,account_id,domain_id,object_id,value) VALUES ";
                     $first=true;
                 }
-                if ($var=="sympa_sympa_www_hits_count") {
+                if ($var=="sympa_www_hits_count") {
                     $id=$this->getDomainInfo($email); // it's a ROBOT (therefore a DOMAIN, not a MAIL)
                     $id[2]="null"; // no object_id involved
                 } else {
