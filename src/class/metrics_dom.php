@@ -76,7 +76,7 @@ class metrics_dom extends metrics_base {
         }
 
         // now delete the old stats and save the new ones.
-        $db->query("DELETE FROM metrics WHERE class='dom' AND name='web_size_bytes';");
+        $db->query("DELETE FROM metrics WHERE class='dom' AND name='dom_web_size_bytes';");
         
         $count=0;
         $sql="";
@@ -88,7 +88,7 @@ class metrics_dom extends metrics_base {
                 $first=true;
             }
             if (!$first) $sql.=",";
-            $sql.=" ('dom','web_size_bytes',".$value[0].",null,null,".$value[1].") ";
+            $sql.=" ('dom','dom_web_size_bytes',".$value[0].",null,null,".$value[1].") ";
             $first=false;
             $count++;
         }
@@ -140,12 +140,12 @@ class metrics_dom extends metrics_base {
             fclose($f);
             
             // now delete the old stats and save the new ones.
-            $db->query("DELETE FROM metrics WHERE class='dom' AND name!='size' AND account_id=".$account.";");
+            $db->query("DELETE FROM metrics WHERE class='dom' AND name!='dom_web_size_bytes' AND account_id=".$account.";");
             
             // we fill the db with all those data:
             foreach($this->info as $var=>$info) {
                 if (in_array($var,$this->manualmetrics)) continue; // those are not computed here 
-                if ($var=="web_size_bytes") continue; // this one neither :) 
+                if ($var=="dom_web_size_bytes") continue; // this one neither :) 
 
                 $sql="";
                 foreach($$var as $fqdn => $value) {
