@@ -152,7 +152,7 @@ class metrics_dom extends metrics_base {
                     if (!$sql || strlen($sql)>1048576) { // should be a bit less than max_packet_size for MySQL ...
                         if ($sql && $this->conf["debug"]) echo date("Y-m-d H:i:s")." dom: collected $count metrics\n";
                         $db->query($sql);
-                        $sql="INSERT INTO metrics (class,name,account_id,domain_id,object_id,value) VALUES ";
+                        $sql="INSERT IGNORE INTO metrics (class,name,account_id,domain_id,object_id,value) VALUES ";
                         $first=true;
                     }
                     $id=$this->getFqdnInfo($fqdn,$account);
