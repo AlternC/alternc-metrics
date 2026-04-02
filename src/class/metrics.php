@@ -14,15 +14,19 @@ class metrics {
         if (is_file("/etc/alternc/metrics.json")) {
             $this->conf=@json_decode(file_get_contents("/etc/alternc/metrics.json"));
         }
-        // get the list of alternc's installed classes:
-        $this->classes=["mail"=>1,"dom"=>1,"mysql"=>1];
 
-        if (is_file("/usr/share/alternc/panel/class/m_mailman.php")) {
-            $this->classes["mailman"]=1;
+        // The 2 blocs below scans the m_*.php files for working class in AlternC (either standard or as a module)
+        // and all metrics_*.php files either from this package OR from a module too.
+        // so this package can provide external module's metrics code, OR other modules can provide their own metrics too.
+        
+        // get the list of all alternc classes:
+        $d=opendir(__DIR__);
+        while (($c=readdir($d))!==false) {
+            if (substr($c,0,2)=="m_" && substr($c,-4)==".php") {
+                $this->classes[substr($c,2,-4)]=1;
+            }
         }
-        if (is_file("/usr/share/alternc/panel/class/m_sympa.php")) {
-            $this->classes["sympa"]=1;
-        }
+        closedir($d);
 
         // get the list of metric classes:
         $d=opendir(__DIR__);

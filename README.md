@@ -6,7 +6,19 @@ This software is not really useful alone. You should install alternc-metrics-bas
 
 Or you could install the alternc-metrics-prometheus package to export those metrics to a prometheus endpoint. 
 
-# Installation : 
+# How does it work?
+
+the main class/file is `metrics.php`, which scans for all metrics_*.php files as submodules.
+
+The main class is named `metrics` and is in charge of installing tables for itself and other classes, launching daily collection of hard-to-get metrics, and provide informations about all metrics submodules.
+
+Metrics submodule are defined for each AlternC class like dom (for domains), mysql, mail, but also from alternc external modules such as sympa or mailman.
+
+Any AlternC module can provide its own `metrics_modulename.php`  file as long as it provides a subclass of `metric_base` baseclass.
+
+
+
+# Installation: 
 
 To get a debian package, use debuild: 
 
